@@ -33,3 +33,6 @@ data class PlusCode(
     @SerializedName("global_code")
     val globalCode: String
 )
+
+fun LatLngLiteral.asString() = "${lat},${lng}"
+

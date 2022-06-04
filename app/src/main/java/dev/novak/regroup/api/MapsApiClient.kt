@@ -5,7 +5,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 
-const val MAPS_BASE_API = "https://maps.googleapis.com/maps/api"
+const val MAPS_BASE_API = "https://maps.googleapis.com/maps/"
 
 
 

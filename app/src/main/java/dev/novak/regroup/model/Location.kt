@@ -3,7 +3,6 @@ package dev.novak.regroup.model
 import com.google.android.gms.maps.model.LatLng
 
 const val SEARCH_RADIUS_METRES = "5000"
-val MILTON_LAT_LNG = LatLng(43.526646, -79.891205)
 const val MAX_LOCATIONS = 5
 
 const val NEARBY_API = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
