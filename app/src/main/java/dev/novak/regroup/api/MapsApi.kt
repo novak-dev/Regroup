@@ -1,6 +1,5 @@
 package dev.novak.regroup.api
 
-import dev.novak.regroup.model.SEARCH_RADIUS_METRES
 import dev.novak.regroup.model.maps.GeocodingResponse
 import dev.novak.regroup.model.maps.NearbyResponse
 import retrofit2.Response
@@ -14,9 +13,11 @@ interface MapsApi {
         @Query("address") address: String,
         @Query("key") key: String): Response<GeocodingResponse>
 
-    @GET("api/place/nearbysearch/json?rank_by=distance&radius=${SEARCH_RADIUS_METRES}")
+    @GET("api/place/nearbysearch/json?rankby=distance")
     suspend fun getNearbyResponse(
         @Query("location") location: String,
         @Query("keyword") keyword: String,
         @Query("key") key: String): Response<NearbyResponse>
+
+
 }

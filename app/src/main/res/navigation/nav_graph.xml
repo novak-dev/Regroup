@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/addOriginsFragment">
+
+    <fragment
+        android:id="@+id/addOriginsFragment"
+        android:name="dev.novak.regroup.AddOriginsFragment"
+        android:label="fragment_add_origins"
+        tools:layout="@layout/fragment_add_origins" >
+        <action
+            android:id="@+id/action_origin_to_destination"
+            app:destination="@id/addDestinationFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addDestinationFragment"
+        android:name="dev.novak.regroup.AddDestinationFragment"
+        android:label="fragment_add_destination"
+        tools:layout="@layout/fragment_add_destination" >
+        <action
+            android:id="@+id/action_destination_to_result"
+            app:destination="@id/resultFragment" />
+        <action
+            android:id="@+id/action_destination_to_origin"
+            app:destination="@id/addOriginsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/resultFragment"
+        android:name="dev.novak.regroup.ResultFragment"
+        android:label="fragment_result"
+        tools:layout="@layout/fragment_result">
+    </fragment>
+</navigation>

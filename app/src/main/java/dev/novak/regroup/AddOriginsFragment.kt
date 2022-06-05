@@ -1,59 +1,58 @@
 package dev.novak.regroup
 
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
+import dev.novak.regroup.model.LocationsViewModel
+import timber.log.Timber
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [AddOriginsFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class AddOriginsFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private val locationsViewModel: LocationsViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_add_origins, container, false)
+    ): View {
+        val view = inflater.inflate(R.layout.fragment_add_origins, container, false)
+
+        view.findViewById<Button>(R.id.add_origin_fab).setOnClickListener {
+            onAddLocationButtonClicked()
+        }
+
+        view.findViewById<Button>(R.id.next_button).setOnClickListener {
+            findNavController().navigate(R.id.action_origin_to_destination)
+        }
+        return view
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AddOriginsFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            AddOriginsFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+
+    // See https://medium.com/@gracekim1611/android-studio-dialogs-edb96717a64e
+    private fun onAddLocationButtonClicked() {
+        val alert = AlertDialog.Builder(requireContext())
+        val locationInput = EditText(requireContext())
+        val nextButton = requireView().findViewById<Button>(R.id.next_button)
+
+        alert.setTitle("Add a starting location")
+            .setView(locationInput)
+            .setPositiveButton("Add") { _, _ ->
+                if (!locationInput.text.isNullOrBlank()) {
+                    val origin = locationInput.text.toString()
+                    Timber.i("Adding to origin list: $origin")
+                    locationsViewModel.addOrigin(origin)
+                    nextButton.isEnabled = true
                 }
             }
+            .setNegativeButton("Cancel") { _, _ -> }
+            .show()
     }
+
 }

@@ -1,17 +1,19 @@
 package dev.novak.regroup.model
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import dev.novak.regroup.api.MapsApiClient
 import dev.novak.regroup.api.MapsApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
+const val MAX_LOCATIONS = 5
 
-class LocationsViewModel(private val apiKey: String): ViewModel() {
+class LocationsViewModel: ViewModel() {
 
     fun addOrigin(orig: String) = viewModelScope.launch { origin.emit(orig) }
 
@@ -25,48 +27,41 @@ class LocationsViewModel(private val apiKey: String): ViewModel() {
                 searchNearby(centre, keyword)
             } else {
                 Timber.e("Centre point is null! Not able to search: $originList")
-                destination.emit(null)
+                destination.emit(LatLng(0.0, 0.0))
             }
         }
     }
 
-    fun onDestination(action: (destination: Address?) -> Unit) {
+
+    fun onDestination(action: (destination: LatLng) -> Unit) {
         viewModelScope.launch {
-            destination.collect {
-                action(it)
+            withContext(Dispatchers.Main) {  // TODO: refactor - getMapAsync must run on main
+                destination.collect { action(it) }
             }
         }
     }
 
-    private val destination = MutableStateFlow<Address?>(null)
+    fun setKey(mapsApiKey: String) {
+        Timber.i("Setting API key")
+        apiKey = mapsApiKey
+    }
+
+    private val destination = MutableStateFlow(LatLng(0.0, 0.0))
     private val origin = MutableSharedFlow<Address>(MAX_LOCATIONS)
     private val originLatLng = MutableSharedFlow<LatLng>(MAX_LOCATIONS)
     private val mapsApi = MapsApiClient.getInstance().create(MapsApi::class.java)
+    // TODO: lets disable the buttons if the api key is not set to prevent weird race condition
+    private lateinit var apiKey: String
 
-    private fun buildNearbyRequest(place: LatLng, keyword: String): String = Uri.parse(NEARBY_API)
-        .buildUpon()
-        .appendQueryParameter("location", place.asString())
-        .appendQueryParameter("radius", SEARCH_RADIUS_METRES)
-        .appendQueryParameter("keyword", keyword) // For example, Tim Hortons
-        .appendQueryParameter("rank_by", "distance")
-        .appendQueryParameter("key", apiKey)
-        .toString()
-
-    // TODO: the "vicinity" parameter is optional so this can crash
+    // TODO: handle edge cases
     private fun searchNearby(place: LatLng, keyword: String) {
         Timber.i("searchNearby ${place.asString()} keyword: $keyword")
         viewModelScope.launch {
-            val result = mapsApi.getNearbyResponse(place.asString(), keyword, apiKey)
-            result.body()?.let {
-                if (it.results.isNotEmpty()) {
-                    val closestPlace = it.results[0].vicinity
-                    Timber.i("searchNearby success, closest place is $closestPlace")
-                    destination.emit(closestPlace)
-                } else {
-                    Timber.w("Search nearby returned zero results")
-                    destination.emit("No locations found!")
-                }
-            } ?: destination.emit("No locations found!")
+            val response = mapsApi.getNearbyResponse(place.asString(), keyword, apiKey)
+            response.body()?.let {
+                val result = it.results[0].geometry!!.location
+                destination.emit(LatLng(result.lat, result.lng))
+            } ?: destination.emit(LatLng(0.0, 0.0))
         }
     }
 
@@ -74,8 +69,8 @@ class LocationsViewModel(private val apiKey: String): ViewModel() {
     private fun getOriginLatLng(address: Address) {
         Timber.i("Performing geocoding lat/lng lookup for $address")
         viewModelScope.launch {
-            val result = mapsApi.getGeocodingResponse(address, apiKey)
-            result.body()?.let {
+            val response = mapsApi.getGeocodingResponse(address, apiKey)
+            response.body()?.let {
                 if (it.results.isNotEmpty()) {
                     val latLingLiteral = it.results[0].geometry.location
                     val latLng = LatLng(latLingLiteral.lat, latLingLiteral.lng)

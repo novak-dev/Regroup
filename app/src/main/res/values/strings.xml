@@ -8,7 +8,9 @@
     <string name="add_location_prompt">Enter up to 5 starting locations with the Add button</string>
     <string name="destination_helper_text">Enter a destination such as \'coffee shop\'</string>
     <string name="destination">Destination</string>
-    <string name="find_destination_button">Find destination</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="begin_search">Begin Search</string>
+    <string name="no_locations_found">No locations found!</string>
+    <string name="next">Next</string>
+    <string name="destination_illustration">Destination Illustration</string>
+    <string name="starting_location_illustration">Starting Location Illustration</string>
 </resources>
