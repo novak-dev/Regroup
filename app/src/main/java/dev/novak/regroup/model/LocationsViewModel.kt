@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import dev.novak.regroup.api.MapsApiClient
 import dev.novak.regroup.api.MapsApi
+import dev.novak.regroup.model.maps.asString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -33,7 +34,7 @@ class LocationsViewModel: ViewModel() {
     }
 
 
-    fun onDestination(action: (destination: LatLng) -> Unit) {
+    fun onDestination(action: (destination: LatLng?) -> Unit) {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {  // TODO: refactor - getMapAsync must run on main
                 destination.collect { action(it) }
@@ -46,22 +47,23 @@ class LocationsViewModel: ViewModel() {
         apiKey = mapsApiKey
     }
 
-    private val destination = MutableStateFlow(LatLng(0.0, 0.0))
+    private val destination = MutableStateFlow<LatLng?>(null)
     private val origin = MutableSharedFlow<Address>(MAX_LOCATIONS)
     private val originLatLng = MutableSharedFlow<LatLng>(MAX_LOCATIONS)
     private val mapsApi = MapsApiClient.getInstance().create(MapsApi::class.java)
     // TODO: lets disable the buttons if the api key is not set to prevent weird race condition
     private lateinit var apiKey: String
 
-    // TODO: handle edge cases
     private fun searchNearby(place: LatLng, keyword: String) {
         Timber.i("searchNearby ${place.asString()} keyword: $keyword")
         viewModelScope.launch {
             val response = mapsApi.getNearbyResponse(place.asString(), keyword, apiKey)
-            response.body()?.let {
-                val result = it.results[0].geometry!!.location
-                destination.emit(LatLng(result.lat, result.lng))
-            } ?: destination.emit(LatLng(0.0, 0.0))
+            val result = response.body()?.results?.getOrNull(0)?.geometry?.location
+            Timber.i("searchNearby result: ${result?.asString()}")
+            when (result) {
+                null -> destination.emit(null)
+                else -> destination.emit(LatLng(result.lat, result.lng))
+            }
         }
     }
 

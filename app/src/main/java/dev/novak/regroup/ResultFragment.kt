@@ -4,11 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import dev.novak.regroup.model.LocationsViewModel
 import timber.log.Timber
@@ -34,15 +34,18 @@ class ResultFragment: Fragment() {
         mapView = view.findViewById(R.id.mapView)
         mapView.onCreate(mapviewBundle)
         locationsViewModel.onDestination { latLng ->
-            Timber.i("Got destination $latLng")
-            mapView.getMapAsync{ map ->
-                Timber.i("Map is ready")
-                map.clear()
-                map.addMarker(MarkerOptions().position(latLng).title("Destination"))
-                map.moveCamera(CameraUpdateFactory.newLatLng(latLng))
-                map.setMinZoomPreference(20.0f)
-                map.setMaxZoomPreference(20.0f)
-            }
+            latLng?.let {
+                Timber.i("Got destination $latLng")
+                mapView.getMapAsync{ map ->
+                    Timber.i("Map is ready")
+                    map.clear()
+                    map.addMarker(MarkerOptions().position(latLng).title("Destination"))
+                    map.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+                    map.setMinZoomPreference(20.0f)
+                    map.setMaxZoomPreference(20.0f)
+                }
+            } ?: Toast.makeText(requireContext(),
+                "No destination found!", Toast.LENGTH_SHORT).show()
         }
         return view
     }
